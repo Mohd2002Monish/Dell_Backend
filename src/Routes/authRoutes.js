@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.get("/", (req, res) => {
+app.get("/line", (req, res) => {
   res.send({ msg: "King of the world" });
 });
 const verifyToken = (req, res) => {
@@ -18,7 +18,7 @@ const verifyToken = (req, res) => {
   if (!token) {
     return res.send({ msg: "Token Not Found" });
   }
-  console.log(token);
+
   try {
     const decodedToken = jwt.verify(token, "SECERTKEY");
     req.user = decodedToken;
@@ -29,20 +29,24 @@ const verifyToken = (req, res) => {
 };
 const authFunction = async (user, res) => {
   const token = await jwt.sign(
-    { name: user.name, email: user.mail, role: user._id },
+    { name: user.name, email: user.mail, role: user.role },
     "SECERTKEY",
     { expiresIn: "7days" }
   );
   res.cookie("jwtToken", token, { httpOnly: true });
+
   return res.status(200).send({
     msg: "LOGIN SUCCESS",
     auth: true,
+    userName: user.name,
+    role: user.role,
   });
 };
 app.post("/signin", async (req, res) => {
   const { email, pass } = req.body;
-  console.log();
+
   const user = await UserModel.findOne({ email });
+
   if (!user) {
     return res.status(404).send({ msg: "User not found", auth: false });
   }
@@ -141,4 +145,4 @@ app.post("/signup", async (req, res) => {
     return res.status(500).send({ error: "An error occurred during signup" });
   }
 });
-module.exports = app
+module.exports = app;
