@@ -56,7 +56,7 @@ app.post("/signin", async (req, res) => {
     const hoursLeft = Math.ceil(blocktime / (1000 * 60 * 60));
 
     if (hoursLeft <= 24) {
-      return res.send({
+      return res.status(503).send({
         msg: `Your account has been blocked, try again after ${
           24 - hoursLeft
         } hours `,
