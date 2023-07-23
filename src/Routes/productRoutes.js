@@ -1,7 +1,7 @@
 const express = require("express");
 const Product = require("../Model/product.model");
 const app = express();
-
+app.use(express.json());
 app.post("/products", async (req, res) => {
   try {
     const product = await Product.create(req.body);
@@ -13,8 +13,17 @@ app.post("/products", async (req, res) => {
 });
 
 app.get("/products", async (req, res) => {
+  var query = {};
+  let { q } = req.query;
+  console.log(q);
+  if (q !== "") {
+    query = { $or: [{ model_number: q }, { service_tag: q }] };
+  } else {
+    query = {};
+  }
   try {
-    const products = await Product.find();
+    const products = await Product.find(query);
+
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -56,6 +65,53 @@ app.delete("/products/:id", async (req, res) => {
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+
+app.post("/products/:product_id/addPart", async (req, res) => {
+  try {
+    const product_id = req.params.product_id;
+    const newPart = req.body;
+    console.log(product_id);
+    console.log(newPart);
+    const updatedProduct = await Product.findOneAndUpdate(
+      { product_id },
+      { $push: { parts: newPart } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.json(updatedProduct);
+  } catch (error) {
+    console.error("Error adding part:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+app.post("/products/:product_id/removePart/:part_id", async (req, res) => {
+  console.log("king");
+  try {
+    const product_id = req.params.product_id;
+    const part_id = req.params.part_id;
+    console.log(product_id);
+    console.log(part_id);
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      { product_id },
+      { $pull: { parts: { part_id } } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    return res.json(updatedProduct);
+  } catch (error) {
+    console.error("Error removing part:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
