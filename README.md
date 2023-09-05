@@ -1,4 +1,4 @@
-# Assignment 
+# E-commerce Backend 
 
 ## Project Description: Backend for Web Application with User Authentication and Admin Privileges
 
